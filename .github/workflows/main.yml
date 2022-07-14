@@ -41,31 +41,31 @@ jobs:
     env:
       NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
-  # publish-gpr:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 16
-  #         registry-url: https://npm.pkg.github.com/
-  #         scope: '@azlabsjs'
-  #     - name: Check npm version
-  #       run: npm -v
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://npm.pkg.github.com/
+          scope: '@azlabsjs'
+      - name: Check npm version
+        run: npm -v
 
-  #     - name: Install deps
-  #       uses: bahmutov/npm-install@v1
-  #       with:
-  #         useLockFile: false
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
 
-  #     - name: Build
-  #       run: npm run build
+      - name: Build
+        run: npm run build
 
-  #     - run: npm publish
-  #   env:
-  #     NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - run: npm publish
+    env:
+      NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
