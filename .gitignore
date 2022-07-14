@@ -5,3 +5,6 @@ node_modules
 dist
 /workspace/**/*
 /workspace
+binary-content.js
+binary-request.js
+default-request.js

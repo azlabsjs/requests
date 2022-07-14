@@ -13,7 +13,7 @@
     "scripts": {
         "build": "ts-build build --external node-domexception",
         "lint": "ts-build lint",
-        "prepare": "git config core.hookspath .githooks && ts-build build",
+        "prepare": "git config core.hookspath .githooks && ts-build build --external node-domexception",
         "size": "size-limit",
         "analyze": "size-limit --why",
         "test": "jest",
@@ -66,7 +66,6 @@
         "husky": "^8.0.1",
         "jest": "^28.1.2",
         "jest-watch-typeahead": "^1.1.0",
-        "node-domexception": "^1.0.0",
         "node-fetch": "^3.2.6",
         "prettier": "^2.7.1",
         "size-limit": "^7.0.8",
@@ -76,7 +75,6 @@
     },
     "optionalDependencies": {
         "abort-controller": "^3.0.0",
-        "node-domexception": "^1.0.0",
         "node-fetch": "^3.2.6"
     },
     "publishConfig": {
