@@ -1,5 +1,4 @@
 import { HttpBackend, HttpRequest, HttpResponseType } from './types';
-import { registerFetchGlobals } from './fetch-polyfill';
 import { CreateErrorResponse, CreateResponse, getContentType } from './helpers';
 import { useRequestBackendController } from './controller';
 
@@ -7,14 +6,16 @@ type ControllerAwareHttpBackend = {
   controller: AbortController;
 } & HttpBackend;
 
-function randomFilename() {
-  return (
-    Math.random().toString(16).substring(2, 15) +
-    Math.random().toString(16).substring(2, 15)
-  );
+function FetchError(message?: string, options?: ErrorOptions) {
+  throw new Error(message, options);
 }
 
 function createInstance(host: string) {
+  if (typeof fetch === 'undefined' || fetch === null) {
+    FetchError(
+      'fetch object is not present in the global environment, if running in a node environment, please import the polyfill from @azlabsjs/node-fetch-polyfill package or create your own polyfill'
+    );
+  }
   const backend: Record<string, any> & {
     _url?: string;
   } = new Object();
@@ -71,7 +72,11 @@ function asFormData(body: Record<string, FormDataEntryValue> | FormData) {
       _body.append(prop, value);
     }
     if (value instanceof Blob) {
-      value = new File([value], randomFilename());
+      value = new File(
+        [value],
+        Math.random().toString(16).substring(2, 15) +
+          Math.random().toString(16).substring(2, 15)
+      );
     }
     if (value instanceof File) {
       _body.append(prop, value, value.name);
@@ -169,8 +174,6 @@ async function sendRequest(
  * @param host
  */
 export function useFetchBackend(host: string) {
-  // Register fetch globals
-  registerFetchGlobals();
   const backend = createInstance(host) as any as ControllerAwareHttpBackend;
 
   Object.defineProperty(backend, 'handle', {
