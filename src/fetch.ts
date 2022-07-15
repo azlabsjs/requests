@@ -10,21 +10,19 @@ function FetchError(message?: string, options?: ErrorOptions) {
   throw new Error(message, options);
 }
 
-function createInstance(host: string) {
+function createInstance(host?: string) {
   if (typeof fetch === 'undefined' || fetch === null) {
     FetchError(
       'fetch object is not present in the global environment, if running in a node environment, please import the polyfill from @azlabsjs/node-fetch-polyfill package or create your own polyfill'
     );
   }
-  const backend: Record<string, any> & {
-    _url?: string;
-  } = new Object();
+  //#region Initialize backend instance properties
+  const backend = new Object();
+  const hostURL = host;
+  //#endregion Initialize backend instance properties
   Object.defineProperty(backend, 'host', {
-    value: () => backend._url,
+    value: () => hostURL,
   });
-
-  backend._url = host;
-
   return backend;
 }
 
@@ -173,7 +171,7 @@ async function sendRequest(
  *
  * @param host
  */
-export function useFetchBackend(host: string) {
+export function useFetchBackend(host?: string) {
   const backend = createInstance(host) as any as ControllerAwareHttpBackend;
 
   Object.defineProperty(backend, 'handle', {
@@ -244,10 +242,11 @@ export function useFetchBackend(host: string) {
   // Set The about controller property of the backend instance
   backend.controller = new AbortController();
 
+  // Returns the backend instance
   return backend;
 }
 
 //Creates a backend controller on top the fetch client
-export function fetchBackendController(url: string) {
-  return useRequestBackendController(useFetchBackend(url));
+export function fetchBackendController(host?: string) {
+  return useRequestBackendController(useFetchBackend(host));
 }

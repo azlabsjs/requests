@@ -183,14 +183,7 @@ function initXMLHttpRequest(xhr: XMLHttpRequest, request: HttpRequest) {
 // @internal
 function createInstance(host?: string) {
   const backend = new Object();
-
-  // Defines the backend host property
-  Object.defineProperty(backend, 'url', {
-    value: host,
-    writable: true,
-    configurable: true,
-    enumerable: true,
-  });
+  const hostURL = host;
 
   // Defines the backend instance property
   Object.defineProperty(backend, 'instance', {
@@ -202,7 +195,7 @@ function createInstance(host?: string) {
 
   // Defines the backend host property
   Object.defineProperty(backend, 'host', {
-    value: () => (backend as any)['url'] as string,
+    value: () => hostURL as string,
   });
 
   // Returns the constructed backed object
@@ -399,6 +392,6 @@ export function useXhrBackend(url?: string) {
 }
 
 //Creates a backend controller on top the xhr client
-export function xhrBackendController(url: string) {
+export function xhrBackendController(url?: string) {
   return useRequestBackendController(useXhrBackend(url));
 }
