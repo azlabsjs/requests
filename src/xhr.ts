@@ -303,10 +303,12 @@ export function useXhrBackend(url?: string) {
           }
         })(message);
 
+        // Set the backend client instance
         backend.instance = initXMLHttpRequest(backend.instance, message);
-
+        // Register to load event listener which mark the successful state
+        // of the request
         backend.instance.addEventListener('load', finishHandler);
-        // When an HTTP Error Occurs
+        // When an HTTP Error occurs
         backend.instance.addEventListener('error', errorHandler);
         // Listen for progess event and call user registered
         // callback
