@@ -26,13 +26,18 @@ export type HTTPRequestMethods =
   | 'put'
   | 'patch';
 
+type RequestBody =
+  | FormData
+  | Record<string, string | File | FormDataEntryValue>
+  | Record<string, any>;
+
 // Type definition of a request interface object
 // @internal
 export type RequestInterface = {
   method: HTTPRequestMethods;
   url: string;
   options?: RequestOptions;
-  body?: FormData | Record<string, string | File | FormDataEntryValue>;
+  body?: RequestBody;
 };
 
 // Request object interface definition
