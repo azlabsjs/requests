@@ -6,6 +6,8 @@ export {
   Interceptor,
   NextFunction,
   HttpErrorResponse,
+  HttpBackendController,
+  HttpBackend
 } from './types';
 export { useClient } from './request';
 export { usePipeline } from './interceptors';
