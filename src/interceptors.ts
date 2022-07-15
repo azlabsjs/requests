@@ -53,7 +53,7 @@ function getRequestOptions(request: HttpRequest) {
   }
 
   // HTTP-network-or-cache fetch steps 2.4-2.7
-  let contentLengthValue = null;
+  let contentLengthValue: string | undefined = undefined;
   if (request.body === null && /^(post|put)$/i.test(request.method)) {
     contentLengthValue = '0';
   }

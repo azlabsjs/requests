@@ -29,7 +29,8 @@ export type HTTPRequestMethods =
 type RequestBody =
   | FormData
   | Record<string, string | File | FormDataEntryValue>
-  | Record<string, any>;
+  | Record<string, any>
+  | any;
 
 // Type definition of a request interface object
 // @internal

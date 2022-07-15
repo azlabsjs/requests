@@ -6,8 +6,8 @@ type ControllerAwareHttpBackend = {
   controller: AbortController;
 } & HttpBackend;
 
-function FetchError(message?: string, options?: ErrorOptions) {
-  throw new Error(message, options);
+function FetchError(message?: string) {
+  throw new Error(message);
 }
 
 function createInstance(host?: string) {

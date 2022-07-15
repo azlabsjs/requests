@@ -12,7 +12,7 @@ import { toBinary } from './utils';
 
 // Get all request headers as dictionary data structure
 function getResponseHeaders(headers: string) {
-  const result: Record<string, any> = {};
+  const result: Record<string, any> = new Object();
   for (const header of headers.split('\r\n')) {
     const [name, value] = header.split(': ');
     if (
@@ -69,17 +69,32 @@ function getResponseBody(responseType: string, body: any, ok: boolean) {
   return [body, ok];
 }
 
+// @internal
+// The function allow client to send object as multipart-request
+// if any of the entry of the object is an instance of Blob or File
+function isMultipartRequestBody(body: any) {
+  if (body instanceof FormData) {
+    return true;
+  }
+  if (typeof body === 'object' && body !== null) {
+    for (const prop in body) {
+      if (body[prop] instanceof Blob || body[prop] instanceof File) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// @internal
 // Send the request using the provided client object
 async function sendRequest(instance: XMLHttpRequest, request: HttpRequest) {
-  const { contentType } = getContentType(request.options?.headers || {});
-  if (typeof request.body === 'undefined' || request.body === null) {
+  let { contentType } = getContentType(request.options?.headers || {});
+  let body = request.body;
+  if (typeof body === 'undefined' || body === null) {
     // Set the request header and send the request
     instance.setRequestHeader('content-type', contentType);
     return instance.send();
-  }
-
-  if (request.body instanceof FormData) {
-    return instance.send(request.body);
   }
 
   if (
@@ -88,8 +103,35 @@ async function sendRequest(instance: XMLHttpRequest, request: HttpRequest) {
     contentType.indexOf('application/json') !== -1
   ) {
     instance.setRequestHeader('content-type', 'application/json;charset=UTF-8');
-    return instance.send(JSON.stringify(request.body));
+    return instance.send(JSON.stringify(body));
   }
+
+  // Request having their body as instance of File or Blob
+  // class are transformed into a javascript object to the next
+  // too treat them as mlutipart body
+  if (body instanceof Blob || body instanceof File) {
+    body = {
+      ['content']:
+        body instanceof Blob
+          ? new File(
+              [body],
+              Math.random().toString(16).substring(2, 15) +
+                Math.random().toString(16).substring(2, 15),
+              {
+                type: body.type,
+                lastModified: new Date().getTime(),
+              }
+            )
+          : body,
+    };
+  }
+
+  // Makes sure to detect a multipart form data request body if the body is
+  // a Javascript object with any given value being an instance of Blob or File
+  contentType =
+    contentType ?? isMultipartRequestBody(body)
+      ? 'multipart/form-data'
+      : 'application/x-www-form-urlencoded';
 
   if (
     typeof contentType !== 'undefined' &&
@@ -97,18 +139,14 @@ async function sendRequest(instance: XMLHttpRequest, request: HttpRequest) {
     contentType.indexOf('multipart/form-data') !== -1
   ) {
     const encoder = new FormDataRequestEncoder();
-    instance.setRequestHeader(
-      'content-type',
-      'multipart/form-data; boundary=' + encoder.getBoundary()
-    );
-    return instance.send(toBinary(await encoder.encode(request.body)));
+    const contentTypeHeader =
+      'multipart/form-data; boundary=' + encoder.getBoundary();
+    instance.setRequestHeader('content-type', contentTypeHeader);
+    return instance.send(toBinary(await encoder.encode(body)));
   }
-  // const contentType =
-  //   headers['content-type'] || 'application/x-www-form-urlencoded';
+
   instance.setRequestHeader('content-type', contentType);
-  return instance.send(
-    new RawEncoder(contentType).encode(request.body) as string
-  );
+  return instance.send(new RawEncoder(contentType).encode(body) as string);
 }
 
 // Get partial properties of the {@see XMLHttpRequest} object
@@ -264,7 +302,9 @@ export function useXhrBackend(url?: string) {
             _request.options.onProgress(backend.onProgess(e));
           }
         })(message);
+
         backend.instance = initXMLHttpRequest(backend.instance, message);
+
         backend.instance.addEventListener('load', finishHandler);
         // When an HTTP Error Occurs
         backend.instance.addEventListener('error', errorHandler);
