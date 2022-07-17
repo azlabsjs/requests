@@ -130,3 +130,12 @@ export type HttpBackendController<T, R> = Record<string, any> & {
   // Returns the request URL
   host: () => string | undefined;
 };
+
+
+/**
+ * @description Request client generic interface
+ */
+export type RequestClient<T, R> = Object & {
+  request: (message?: RequestInterface | string) => Promise<R>;
+  registerInterceptors: (...interceptors: Interceptor<T>[]) => T;
+}

@@ -6,6 +6,7 @@ import {
   HttpBackend,
   HttpBackendController,
   HttpResponse,
+  RequestClient,
 } from './types';
 import { URIHelper } from './url';
 import { arrayIncludes, isValidHttpUrl, getHttpHost } from './utils';
@@ -14,11 +15,39 @@ import { Request } from './helpers';
 /**
  * @description Creates a client object for making request
  */
-export function useClient(
+export function useRequestClient(
   backend: HttpBackend | HttpBackendController<HttpRequest, HttpResponse>,
   interceptors: Interceptor<HttpRequest>[] = []
 ) {
-  const client = new Object();
+  const client: Object & {
+    interceptors?: Interceptor<HttpRequest>[];
+  } = new Object();
+
+  // Defines a non-enumerable interceptors property
+  Object.defineProperty(client, 'interceptors', {
+    value: [],
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  });
+
+  // Utility method that returns the list of interceptors of the request client
+  Object.defineProperty(client, 'getInterceptors', {
+    value: () => {
+      return client.interceptors ?? [];
+    },
+  });
+
+  // RegisterInterceptors set the request interceptors list
+  Object.defineProperty(client, 'registerInterceptors', {
+    value: (...interceptors: Interceptor<HttpRequest>[]) => {
+      client.interceptors = (client.interceptors ?? []).concat(...interceptors);
+      return client;
+    },
+    writable: false,
+  });
+
+  // Request method to send the actual request to the server
   Object.defineProperty(client, 'request', {
     value: (req?: RequestInterface | string) => {
       //#region : Added support for empty|empty request parameter to send GET request by default
@@ -36,7 +65,6 @@ export function useClient(
       } else {
         request = req as RequestInterface;
       }
-
       const requestHost = backend.host();
       // Validate the Host URL if isset before proceeding
       if (
@@ -60,7 +88,7 @@ export function useClient(
       }
       //#region For GET request, we add search parameters to the request url
       const notIsPostRequest = !arrayIncludes(
-        ['post', 'path', 'options'],
+        ['post', 'patch', 'put', 'options'],
         request.method?.toLocaleLowerCase() ?? ''
       );
       url =
@@ -73,23 +101,31 @@ export function useClient(
       }
       //#region For GET request, we add search parameters to the request url
       //#endregion : Added support for empty|empty request parameter to send GET request by default
-      let pipe =
-        request.options?.interceptors || ([] as Interceptor<HttpRequest>[]);
-      if (Array.isArray(interceptors) && interceptors.length > 0) {
-        pipe = [...pipe, ...interceptors];
+      let pipe = request.options?.interceptors || [];
+      if (
+        Array.isArray(client.interceptors) &&
+        client.interceptors.length > 0
+      ) {
+        pipe = pipe.concat(...client.interceptors);
       }
-      // Push an interceptor that apply url search parameters if the request is a get
-      // request
-      pipe.push(defaultInterceptor);
       const _request = Request({ ...request, url });
       // Call the request pipeline function and invoke the actual request client instance send method
-      return usePipeline(...pipe)(_request, (message) =>
-        backend.handle(message)
+      // Push an interceptor that apply url search parameters if the request is a get
+      // request
+      return usePipeline(...pipe.concat(defaultInterceptor))(
+        _request,
+        (message) => backend.handle(message)
       );
     },
     writable: false,
   });
-  return client as Record<string, unknown> & {
-    request: (message?: RequestInterface | string) => Promise<HttpResponse>;
+
+  // Set interceptors list passed as argument to the useClient()
+  // function on the request client
+  client.interceptors = interceptors ?? [];
+
+  // Returns the constructed request client
+  return client as RequestClient<HttpRequest, HttpResponse> & {
+    getInterceptors: () => Interceptor<HttpRequest>[];
   };
 }

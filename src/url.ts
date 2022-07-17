@@ -28,11 +28,6 @@ export class URIHelper {
   ) {
     const segments: string[] = [];
     if (body instanceof FormData) {
-      // for (const [prop, value] of (body as any).entries()) {
-      //   segments.push(
-      //     URIHelper.encodeText(prop, entryValue(value), contentType)
-      //   );
-      // }
       body.forEach((value, prop) => {
         segments.push(
           URIHelper.encodeText(prop, entryValue(value), contentType)

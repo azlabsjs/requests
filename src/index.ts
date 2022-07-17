@@ -7,9 +7,16 @@ export {
   NextFunction,
   HttpErrorResponse,
   HttpBackendController,
-  HttpBackend
+  HttpBackend,
+  RequestClient,
 } from './types';
-export { useClient } from './request';
+/**
+ * @deprecated Exported only for compatibility reason
+ * **Note**
+ * Make use of useRequestClient function as it's the original function name
+ */
+export { useRequestClient as useClient } from './request';
+export { useRequestClient } from './request';
 export { usePipeline } from './interceptors';
 export {
   convertBlobToFile,

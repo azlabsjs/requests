@@ -33,6 +33,7 @@
       "noEmit": true,
       // Directory where typescript output declaration files
       "declarationDir": "./dist/types",
+      //
       "allowSyntheticDefaultImports": true
     }
   }

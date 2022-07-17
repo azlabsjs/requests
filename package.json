@@ -3,7 +3,6 @@
     "description": "HTTP Request client based on XMLHttpRequest object and fetch implementation in the browser and node-fetch implementation for node js environement",
     "license": "MIT",
     "main": "dist/index.js",
-    "type": "module",
     "typings": "dist/types/index.d.ts",
     "files": [
         "dist/**/*"
