@@ -60,19 +60,8 @@ export class FormDataRequestEncoder implements Encoder {
   async encode(
     body: Record<string, FormDataEntry> | FormData
   ): Promise<string> {
-    // oAjaxReq.setRequestHeader("Content-Type", "multipart\/form-data; boundary=" + sBoundary);
     const segments: Promise<string>[] = [];
     if (body instanceof FormData) {
-      // TODO: Removed the commented code if tested successfully
-      // for (const [prop, value] of (body as any).entries()) {
-      //   segments.push(
-      //     typeof value === 'string'
-      //       ? new Promise((resolve) => {
-      //           resolve(this.encodeText(prop, value));
-      //         })
-      //       : this.encodeBlob(prop, value.name, value)
-      //   );
-      // }
       body.forEach((value, prop) => {
         segments.push(
           typeof value === 'string'
