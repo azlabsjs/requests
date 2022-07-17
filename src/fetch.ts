@@ -6,16 +6,7 @@ type ControllerAwareHttpBackend = {
   controller: AbortController;
 } & HttpBackend;
 
-function FetchError(message?: string) {
-  throw new Error(message);
-}
-
 function createInstance(host?: string) {
-  if (typeof fetch === 'undefined' || fetch === null) {
-    FetchError(
-      'fetch object is not present in the global environment, if running in a node environment, please import the polyfill from @azlabsjs/node-fetch-polyfill package or create your own polyfill'
-    );
-  }
   //#region Initialize backend instance properties
   const backend = new Object();
   const hostURL = host;
@@ -158,8 +149,16 @@ async function sendRequest(
     redirect: req.options?.redirect || 'follow',
     cache: requestHeaders['cache-control'] || 'no-cache',
   } as RequestInit;
+
+  // #region Check if fetch is globally registered
+  if (typeof fetch === 'undefined' || fetch === null) {
+    throw new Error(
+      'fetch object is not present in the global environment, if running in a node environment, please import the polyfill from @azlabsjs/node-fetch-polyfill package or create your own polyfill'
+    );
+  }
+  // #endregion Check if fetch is registered
   const response = await fetch(req.url, requestOptions);
-  const { statusText, url, headers, ok } = response; // redirected
+  const { statusText, url, headers, ok } = response;
   const responseBody = await getResponseBody(responseType, response);
   let { status } = response;
   status = status === 0 ? (responseBody ? 200 : 0) : status;
