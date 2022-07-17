@@ -135,7 +135,7 @@ export type HttpBackendController<T, R> = Record<string, any> & {
 /**
  * @description Request client generic interface
  */
-export type RequestClient<T, R> = Object & {
+export type RequestClient<T, R> = {
   request: (message?: RequestInterface | string) => Promise<R>;
   registerInterceptors: (...interceptors: Interceptor<T>[]) => T;
 }

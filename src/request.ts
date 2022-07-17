@@ -19,7 +19,7 @@ export function useRequestClient(
   backend: HttpBackend | HttpBackendController<HttpRequest, HttpResponse>,
   interceptors: Interceptor<HttpRequest>[] = []
 ) {
-  const client: Object & {
+  const client: Record<string, any> & {
     interceptors?: Interceptor<HttpRequest>[];
   } = new Object();
 
