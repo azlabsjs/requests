@@ -1,9 +1,4 @@
-import {
-  HttpBackend,
-  HttpBackendController,
-  HttpRequest,
-  HttpResponse,
-} from './types';
+import { HttpBackend, HttpBackendController, HttpRequest } from './types';
 
 // Controller implementation add an event emitter layer on
 // top of the controller object that can be used to register
@@ -94,11 +89,9 @@ function asEventEmitter(object$: Record<string, any>) {
  * on top of the backend api.
  */
 export function useRequestBackendController<T>(backend: HttpBackend) {
-  const controller: HttpBackendController<HttpRequest, HttpResponse> =
-    asEventEmitter(new Object()) as any as HttpBackendController<
-      HttpRequest,
-      HttpResponse
-    >;
+  const controller: HttpBackendController = asEventEmitter(
+    new Object()
+  ) as any as HttpBackendController;
 
   // Defines backend property getter and setter
   Object.defineProperty(controller, 'backend', {

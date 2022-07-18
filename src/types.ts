@@ -108,29 +108,39 @@ export type RequestOptions = {
   referrerPolicy?: string;
 };
 
-// Request backend provider interface definition
-export type HttpBackend = {
-  // Handle Http Request and Request events
-  handle(request: HttpRequest): Promise<HttpResponse>;
-  host: () => string | undefined;
-
-  // Cleanup resources when get call
-  onDestroy?: (request?: HttpRequest) => void;
-  abort?: (request?: HttpRequest) => void;
-};
-
-// Http Request Controller type definition
-export type HttpBackendController<T, R> = Record<string, any> & {
-  aborted: boolean;
-  backend: HttpBackend;
-  // Cancel the currently ongoing request
-  abort(request: T): () => void;
-  // Send the request
+/**
+ * @description Type declaration of a request handler object
+ *
+ * **Note**
+ * Implementation class must provide methods for sending
+ * and aborting (if supported) requests. Implementation classes
+ * are free to use TCP/IP protocols for sending request to specified
+ * server.
+ */
+export type RequestHandler<T, R> = {
+  /**
+   * Method which when called, handle the client request
+   * @method
+   * @param request
+   */
   handle(request: T): Promise<R>;
-  // Returns the request URL
+  /**
+   * Returns request host to which client sends
+   * request to.
+   *
+   * @method
+   */
   host: () => string | undefined;
-};
 
+  /**
+   * Cancel the currently ongoing request
+   *
+   * @method
+   *
+   * @param request
+   */
+  abort?: (request?: T) => void;
+};
 
 /**
  * @description Request client generic interface
@@ -138,4 +148,27 @@ export type HttpBackendController<T, R> = Record<string, any> & {
 export type RequestClient<T, R> = {
   request: (message?: RequestInterface | string) => Promise<R>;
   registerInterceptors: (...interceptors: Interceptor<T>[]) => T;
-}
+};
+
+// Request backend provider interface definition
+export type HttpBackend = RequestHandler<HttpRequest, HttpResponse> & {
+  // Cleanup resources when get call
+  onDestroy?: (request?: HttpRequest) => void;
+};
+
+// Http Request Controller type definition
+export type HttpBackendController = RequestHandler<HttpRequest, HttpResponse> &
+  Record<string, any> & {
+    /**
+     * Boolean value indicating whether request was
+     * was aborted of not.
+     * @property
+     */
+    aborted: boolean;
+    /**
+     * Request backend used by the controller to send
+     * requests to server
+     * @property
+     */
+    backend: HttpBackend;
+  };

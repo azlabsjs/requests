@@ -3,25 +3,40 @@ import {
   Interceptor,
   HttpRequest,
   RequestInterface,
-  HttpBackend,
-  HttpBackendController,
   HttpResponse,
   RequestClient,
+  RequestHandler,
 } from './types';
 import { URIHelper } from './url';
 import { arrayIncludes, isValidHttpUrl, getHttpHost } from './utils';
 import { Request } from './helpers';
+import { fetchBackendController } from './fetch';
+import { xhrBackendController } from './xhr';
+
+// @internal
+type HttpRequestHandler = RequestHandler<HttpRequest, HttpResponse>;
 
 /**
  * @description Creates a client object for making request
  */
 export function useRequestClient(
-  backend: HttpBackend | HttpBackendController<HttpRequest, HttpResponse>,
+  backend?: HttpRequestHandler,
   interceptors: Interceptor<HttpRequest>[] = []
 ) {
   const client: Record<string, any> & {
     interceptors?: Interceptor<HttpRequest>[];
   } = new Object();
+  let _backend!: HttpRequestHandler;
+  //#region Create backend controller if not provided by instance users
+  if (typeof backend === 'undefined' || backend === null) {
+    _backend =
+      typeof window === 'undefined' || typeof XMLHttpRequest === 'undefined'
+        ? fetchBackendController()
+        : xhrBackendController();
+  } else {
+    _backend = backend;
+  }
+  //#endregion
 
   // Defines a non-enumerable interceptors property
   Object.defineProperty(client, 'interceptors', {
@@ -65,7 +80,7 @@ export function useRequestClient(
       } else {
         request = req as RequestInterface;
       }
-      const requestHost = backend.host();
+      const requestHost = _backend.host();
       // Validate the Host URL if isset before proceeding
       if (
         typeof requestHost !== 'undefined' &&
@@ -77,7 +92,7 @@ export function useRequestClient(
         });
       }
       let url = !isValidHttpUrl(request.url)
-        ? `${getHttpHost(backend.host() ?? '')}/${request.url}`
+        ? `${getHttpHost(_backend.host() ?? '')}/${request.url}`
         : request.url;
 
       // Validate the request URL before proceeding
@@ -114,7 +129,7 @@ export function useRequestClient(
       // request
       return usePipeline(...pipe.concat(defaultInterceptor))(
         _request,
-        (message) => backend.handle(message)
+        (message) => _backend.handle(message)
       );
     },
     writable: false,

@@ -9,14 +9,16 @@ export {
   HttpBackendController,
   HttpBackend,
   RequestClient,
+  RequestHandler,
+  RequestInterface,
 } from './types';
 /**
  * @deprecated Exported only for compatibility reason
  * **Note**
  * Make use of useRequestClient function as it's the original function name
  */
-export { useRequestClient as useClient } from './request';
-export { useRequestClient } from './request';
+export { useRequestClient as useClient } from './http';
+export { useRequestClient } from './http';
 export { usePipeline } from './interceptors';
 export {
   convertBlobToFile,
