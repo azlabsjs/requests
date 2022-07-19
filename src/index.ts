@@ -11,6 +11,9 @@ export {
   RequestClient,
   RequestHandler,
   RequestInterface,
+  HTTPRequestMethods,
+  HttpResponseType,
+  RequestBody
 } from './types';
 /**
  * @deprecated Exported only for compatibility reason

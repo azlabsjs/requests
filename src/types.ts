@@ -26,7 +26,7 @@ export type HTTPRequestMethods =
   | 'put'
   | 'patch';
 
-type RequestBody =
+export type RequestBody =
   | FormData
   | Record<string, string | File | FormDataEntryValue>
   | Record<string, any>
