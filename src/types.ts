@@ -71,12 +71,13 @@ export type HttpErrorResponse = {
 export type HeadersType = HeadersInit;
 
 // Pipelines types definitions
-export type NextFunction<T> = (
-  request: T
-) => HttpResponse | Record<string, any>;
+export type NextFunction<T, R = unknown> = (request: T) => R;
 
 // Request interceptor type definition
-export type Interceptor<T> = (message: T, next: NextFunction<T>) => any;
+export type Interceptor<T, R = unknown> = (
+  message: T,
+  next: NextFunction<T, R>
+) => any;
 
 // Progress object type
 export type HttpProgressEvent = {
