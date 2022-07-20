@@ -8,6 +8,28 @@ import {
 } from './types';
 import { validateHeaderName, validateHeaderValue } from './utils';
 
+// @internal
+export function parseRequestHeaders(headers: HeadersType) {
+  const _headers: Record<string, any> = {};
+  if (Array.isArray(headers)) {
+    for (const [prop, value] of headers) {
+      _headers[prop] = value;
+    }
+  } else if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+    headers.forEach((value, prop) => {
+      _headers[prop] = value;
+    });
+  } else if (typeof headers === 'object') {
+    for (const header in headers) {
+      const value = (headers as any)[header];
+      if (typeof value !== 'function') {
+        _headers[header] = value;
+      }
+    }
+  }
+  return _headers;
+}
+
 /**
  * @description Query for content-type header in the list
  * of user provided headers
@@ -20,10 +42,7 @@ export function getContentType(headers: HeadersType) {
       break;
     }
   }
-  return {
-    contentType,
-    requestHeaders: headers as Record<string, any>,
-  };
+  return contentType;
 }
 
 /**

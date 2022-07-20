@@ -2,7 +2,8 @@ export {
   HttpRequest,
   RequestOptions,
   HttpResponse,
-  HttpProgressEvent,
+  RequestProgressEvent as HttpProgressEvent,
+  RequestProgressEvent,
   Interceptor,
   NextFunction,
   HttpErrorResponse,
@@ -13,7 +14,7 @@ export {
   RequestInterface,
   HTTPRequestMethods,
   HttpResponseType,
-  RequestBody
+  RequestBody,
 } from './types';
 /**
  * @deprecated Exported only for compatibility reason

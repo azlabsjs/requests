@@ -80,7 +80,7 @@ export type Interceptor<T, R = unknown> = (
 ) => any;
 
 // Progress object type
-export type HttpProgressEvent = {
+export type RequestProgressEvent = {
   type?: string;
   loaded: number;
   total: number;
@@ -96,7 +96,7 @@ export type RequestOptions = {
   responseType?: HttpResponseType;
 
   // Request options methods for interacting with request
-  onProgress?: (e: HttpProgressEvent) => void;
+  onProgress?: (e: RequestProgressEvent) => void;
   onTimeout?: () => void;
 
   // Interceptors options definitions

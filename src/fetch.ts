@@ -1,5 +1,10 @@
 import { HttpBackend, HttpRequest, HttpResponseType } from './types';
-import { CreateErrorResponse, CreateResponse, getContentType } from './helpers';
+import {
+  CreateErrorResponse,
+  CreateResponse,
+  getContentType,
+  parseRequestHeaders,
+} from './helpers';
 import { useRequestBackendController } from './controller';
 
 type ControllerAwareHttpBackend = {
@@ -128,9 +133,8 @@ async function sendRequest(
   backend: ControllerAwareHttpBackend,
   req: HttpRequest
 ) {
-  const { contentType, requestHeaders } = getContentType(
-    req.options?.headers || {}
-  );
+  const requestHeaders = parseRequestHeaders(req.options?.headers || {});
+  const contentType = getContentType(requestHeaders);
   if (
     typeof contentType !== 'undefined' &&
     contentType !== null &&

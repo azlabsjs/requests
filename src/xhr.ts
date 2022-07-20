@@ -1,9 +1,14 @@
 import { useRequestBackendController } from './controller';
 import { FormDataRequestEncoder, RawEncoder } from './encoders';
-import { CreateErrorResponse, CreateResponse, getContentType } from './helpers';
+import {
+  CreateErrorResponse,
+  CreateResponse,
+  getContentType,
+  parseRequestHeaders,
+} from './helpers';
 import {
   HttpBackend,
-  HttpProgressEvent,
+  RequestProgressEvent,
   HttpRequest,
   HttpResponse,
   HttpErrorResponse,
@@ -89,7 +94,20 @@ function isMultipartRequestBody(body: any) {
 // @internal
 // Send the request using the provided client object
 async function sendRequest(instance: XMLHttpRequest, request: HttpRequest) {
-  let { contentType } = getContentType(request.options?.headers || {});
+  const requestHeaders = parseRequestHeaders(request.options?.headers || {});
+  let contentType = getContentType(requestHeaders);
+  for (const header in requestHeaders) {
+    // Here we escape the content-type header when setting request headers
+    // as the content type header is set when sending the request
+    const value = requestHeaders[header];
+    if (
+      header?.toLocaleLowerCase() === 'content-type' ||
+      typeof value === 'function'
+    ) {
+      continue;
+    }
+    instance.setRequestHeader(header, value);
+  }
   let body = request.body;
   if (typeof body === 'undefined' || body === null) {
     // Set the request header and send the request
@@ -197,7 +215,7 @@ function initXMLHttpRequest(xhr: XMLHttpRequest, request: HttpRequest) {
             percentCompleted,
             loaded: event['loaded'],
             total: event['total'],
-          } as HttpProgressEvent);
+          } as RequestProgressEvent);
         }
       },
       false
@@ -205,15 +223,7 @@ function initXMLHttpRequest(xhr: XMLHttpRequest, request: HttpRequest) {
   }
 
   // Merge headers
-  const headers = { ...(request.options?.headers ?? {}) };
-  for (const header in headers) {
-    // Here we escape the content-type header when setting request headers
-    // as the content type header is set when sending the request
-    if (header?.toLocaleLowerCase() === 'content-type') {
-      continue;
-    }
-    xhr.setRequestHeader(header, (headers as any)[header]);
-  }
+  // setXMLHttpRequestHeaders(xhr, request.options?.headers ?? {});
   return xhr;
 }
 
@@ -269,7 +279,7 @@ function createInstance(host?: string) {
 export function useXhrBackend(url?: string) {
   const backend = createInstance(url) as any as {
     instance: XMLHttpRequest;
-    onProgess?: (event: ProgressEvent) => HttpProgressEvent;
+    onProgess?: (event: ProgressEvent) => RequestProgressEvent;
     onLoad: () => Promise<HttpResponse>;
     onError: (event: ProgressEvent) => HttpErrorResponse;
   } & HttpBackend;
@@ -333,7 +343,7 @@ export function useXhrBackend(url?: string) {
           percentCompleted,
           loaded: event['loaded'],
           total: event['total'],
-        } as HttpProgressEvent;
+        } as RequestProgressEvent;
       }
 
       return {
@@ -341,7 +351,7 @@ export function useXhrBackend(url?: string) {
         percentCompleted: 0,
         loaded: 0,
         total: 0,
-      } as HttpProgressEvent;
+      } as RequestProgressEvent;
     },
   });
 
