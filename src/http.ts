@@ -26,17 +26,6 @@ export function useRequestClient(
   const client: Record<string, any> & {
     interceptors?: Interceptor<HttpRequest>[];
   } = new Object();
-  let _backend!: HttpRequestHandler;
-  //#region Create backend controller if not provided by instance users
-  if (typeof backend === 'undefined' || backend === null) {
-    _backend =
-      typeof window === 'undefined' || typeof XMLHttpRequest === 'undefined'
-        ? fetchBackendController()
-        : xhrBackendController();
-  } else {
-    _backend = backend;
-  }
-  //#endregion
 
   // Defines a non-enumerable interceptors property
   Object.defineProperty(client, 'interceptors', {
@@ -65,6 +54,17 @@ export function useRequestClient(
   // Request method to send the actual request to the server
   Object.defineProperty(client, 'request', {
     value: (req?: RequestInterface | string) => {
+      let _backend!: HttpRequestHandler;
+      //#region Create backend controller if not provided by instance users
+      if (typeof backend === 'undefined' || backend === null) {
+        _backend =
+          typeof window === 'undefined' || typeof XMLHttpRequest === 'undefined'
+            ? fetchBackendController()
+            : xhrBackendController();
+      } else {
+        _backend = backend;
+      }
+      //#endregion Create backend controller if not provided by instance users
       //#region : Added support for empty|empty request parameter to send GET request by default
       let request!: RequestInterface;
       if (typeof req === 'undefined' || req === null) {
@@ -98,7 +98,9 @@ export function useRequestClient(
       // Validate the request URL before proceeding
       if (!isValidHttpUrl(url)) {
         return new Promise(() => {
-          throw new TypeError('Invalid URL');
+          throw new TypeError('Invalid URL', {
+            cause: url,
+          });
         });
       }
       //#region For GET request, we add search parameters to the request url
