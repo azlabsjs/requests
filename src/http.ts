@@ -98,9 +98,7 @@ export function useRequestClient(
       // Validate the request URL before proceeding
       if (!isValidHttpUrl(url)) {
         return new Promise(() => {
-          throw new TypeError('Invalid URL', {
-            cause: url,
-          });
+          throw new TypeError(`Invalid URL: ${url}`);
         });
       }
       //#region For GET request, we add search parameters to the request url
