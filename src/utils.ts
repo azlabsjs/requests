@@ -116,8 +116,8 @@ export function convertBlobToFile(blob: Blob, name: string) {
 
 /**
  * Validate HTTP header name and value
- * 
- * @param name 
+ *
+ * @param name
  * @param value
  * // @internal
  */
@@ -133,8 +133,8 @@ export function validateHeaderValue(name: string, value: string) {
 
 /**
  * Validates HTTP header name
- * 
- * @param name 
+ *
+ * @param name
  */
 export function validateHeaderName(name: string) {
   if (!/^[\^`\-\w!#$%&'*+.|~]+$/.test(name)) {
@@ -144,4 +144,32 @@ export function validateHeaderName(name: string) {
     Object.defineProperty(error, 'code', { value: 'ERR_INVALID_HTTP_TOKEN' });
     throw error;
   }
+}
+/**
+ * @description Checks if a variable is of primitive type aka string|number|boolean
+ * @param param [[any]]
+ */
+export const isPrimitive = (param: unknown) => {
+  switch (typeof param) {
+    case 'string':
+    case 'number':
+    case 'boolean':
+      return true;
+  }
+  return !!(
+    param instanceof String ||
+    param === String ||
+    param instanceof Number ||
+    param === Number ||
+    param instanceof Boolean ||
+    param === Boolean
+  );
+};
+
+// @internal
+export function randomName() {
+  return (
+    Math.random().toString(16).substring(2, 15) +
+    Math.random().toString(16).substring(2, 15)
+  );
 }

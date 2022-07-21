@@ -1,5 +1,6 @@
 import { FormDataEntry } from './types';
 import { URIHelper } from './url';
+import { isPrimitive, randomName } from './utils';
 
 export interface Encoder {
   encode(
@@ -56,34 +57,80 @@ export class FormDataRequestEncoder implements Encoder {
     );
   }
 
+  private encodeArray(name: string, value: any[]): string[] {
+    const segments: string[] = [];
+    name = `${name}[]`;
+    for (const current of value) {
+      if (isPrimitive(current)) {
+        segments.push(this.encodeText(name, current));
+      } else if (Array.isArray(current)) {
+        segments.push(...this.encodeArray(name, current));
+      } else if (typeof current === 'object') {
+        segments.push(...this.encodeRawObject(name, current));
+      }
+    }
+    return segments;
+  }
+
+  private encodeRawObject(name: string, value: Record<string, any>): string[] {
+    const segments: string[] = [];
+    for (const prop in value) {
+      if (isPrimitive(value[prop])) {
+        segments.push(this.encodeText(`${name}[${prop}]`, value[prop]));
+      } else if (Array.isArray(value[prop])) {
+        segments.push(...this.encodeArray(`${name}[${prop}]`, value[prop]));
+      } else if (typeof value[prop] === 'object') {
+        segments.push(...this.encodeRawObject(`${name}[${prop}]`, value[prop]));
+      }
+    }
+    return segments;
+  }
+
+  private async encodeBodyEntry(prop: string, value: any) {
+    if (isPrimitive(value)) {
+      return new Promise<string[]>((resolve) => {
+        resolve([this.encodeText(prop, value as string)]);
+      });
+    } else if (value instanceof File || (value as any) instanceof Blob) {
+      const result = await this.encodeBlob(
+        prop,
+        value instanceof File ? value.name : randomName(),
+        value as Blob
+      );
+      return [result];
+    } else if (Array.isArray(value)) {
+      return new Promise<string[]>((resolve) => {
+        resolve(this.encodeArray(prop, value));
+      });
+    } else if (typeof value === 'object') {
+      return new Promise<string[]>((resolve) => {
+        resolve(this.encodeRawObject(prop, value));
+      });
+    }
+    return new Promise<string[]>((resolve) => resolve([] as string[]));
+  }
+
   // Encode the request body into a raw string
-  async encode(
-    body: Record<string, FormDataEntry> | FormData
-  ): Promise<string> {
-    const segments: Promise<string>[] = [];
+  async encode(body: Record<string, any> | FormData): Promise<string> {
+    const segments: Promise<string[]>[] = [];
     if (body instanceof FormData) {
       body.forEach((value, prop) => {
-        segments.push(
-          typeof value === 'string'
-            ? new Promise((resolve) => {
-                resolve(this.encodeText(prop, value));
-              })
-            : this.encodeBlob(prop, value.name, value)
-        );
+        segments.push(this.encodeBodyEntry(prop, value));
       });
     } else {
       for (const prop in body) {
         const value = body[prop];
-        segments.push(
-          typeof value === 'string'
-            ? new Promise((resolve) => {
-                resolve(this.encodeText(prop, value));
-              })
-            : this.encodeBlob(prop, value.name, value)
-        );
+        segments.push(this.encodeBodyEntry(prop, value));
       }
     }
-    const content = await Promise.all(segments);
+    const content: string[] = [];
+    // TODO : Loop through the 2 dimensional table of string
+    // and flatten the second layer in to the first layer
+    for (const iterator of await Promise.all(segments)) {
+      for (const current of iterator) {
+        content.push(current);
+      }
+    }
     return (
       '--' +
       this.boundary +
@@ -106,7 +153,26 @@ export class RawEncoder implements Encoder {
   encode(
     body: Record<string, FormDataEntry> | FormData
   ): string | Promise<string> {
-    return URIHelper.buildQuery(body, this.contentType).join(
+    const _body: Record<string, any> = {};
+    if (body instanceof FormData) {
+      body.forEach((value, key) => {
+        if (value instanceof File) {
+          _body[key] = value.name;
+        } else {
+          _body[key] = value;
+        }
+      });
+    } else if (typeof body === 'object') {
+      for (const key in body) {
+        if (typeof body[key] !== 'function') {
+          _body[key] = body[key];
+        }
+      }
+    }
+    if (typeof URLSearchParams !== 'undefined') {
+      return new URLSearchParams(_body).toString();
+    }
+    return URIHelper.buildQuery(_body, this.contentType).join(
       this.contentType === 'text/plain' ? '\r\n' : '&'
     );
   }

@@ -3,7 +3,7 @@ function entryValue(value: FormDataEntryValue) {
     ? value
     : value instanceof File
     ? value.name
-    : '';
+    : JSON.stringify(value);
 }
 //#region Provide uri specific utilities
 export class URIHelper {
