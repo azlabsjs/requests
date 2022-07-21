@@ -82,14 +82,6 @@ function getRequestOptions(request: HttpRequest) {
     options.referrerPolicy = DEFAULT_REFERRER_POLICY;
   }
 
-  // HTTP-network-or-cache fetch step 2.11
-  if (
-    typeof requestHeaders['user-agent'] === 'undefined' &&
-    requestHeaders['user-agent'] === null
-  ) {
-    requestHeaders = { ...requestHeaders, ...{ 'user-agent': 'fetch' } };
-  }
-
   // HTTP-network-or-cache fetch step 2.15
   const acceptEncoding = requestHeaders['accept-encoding'] ?? undefined;
   if (
