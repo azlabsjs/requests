@@ -55,12 +55,16 @@ export function useRequestClient(
   Object.defineProperty(client, 'request', {
     value: (req?: RequestInterface | string) => {
       let _backend!: HttpRequestHandler;
+      let xRequestWith!: string;
       //#region Create backend controller if not provided by instance users
       if (typeof backend === 'undefined' || backend === null) {
-        _backend =
-          typeof window === 'undefined' || typeof XMLHttpRequest === 'undefined'
-            ? fetchBackendController()
-            : xhrBackendController();
+        const notInBrowser =
+          typeof window === 'undefined' ||
+          typeof XMLHttpRequest === 'undefined';
+        _backend = notInBrowser
+          ? fetchBackendController()
+          : xhrBackendController();
+        xRequestWith = notInBrowser ? 'fetch' : 'xhr';
       } else {
         _backend = backend;
       }
@@ -123,7 +127,7 @@ export function useRequestClient(
       ) {
         pipe = pipe.concat(...client.interceptors);
       }
-      const _request = Request({ ...request, url });
+      const _request = Request({ ...request, url }, xRequestWith);
       // Call the request pipeline function and invoke the actual request client instance send method
       // Push an interceptor that apply url search parameters if the request is a get
       // request

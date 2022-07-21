@@ -50,13 +50,15 @@ export function getContentType(headers: HeadersType) {
  * by the as parameter allowing middleware to clone request
  * using ```js request = request.clone({}); ``` calls.
  */
-export function Request(request: RequestInterface) {
+export function Request(request: RequestInterface, xRequestWith?: string) {
   const requestOptions = request.options || {};
   // Default headers to use when client does not
   // provide a headers options
-  const requestHeaders: Record<string, any> = {
-    'x-requested-with': 'fetch',
-  };
+  const requestHeaders: Record<string, any> = xRequestWith
+    ? {
+        'x-requested-with': xRequestWith,
+      }
+    : {};
   const headers: Record<string, any> = requestOptions.headers ?? {};
 
   // We Transform all header property to lowercase
