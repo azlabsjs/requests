@@ -1,0 +1,7 @@
+# Chanlogs
+
+## [0.1.20]
+
+- Breaking changes in Request.clone(), Response.clone()
+- Breaking changes introduced in HTTPMethod types, HTTPResponse type and HTTP and most types definitions
+- Breaking Change in HTTPResponse, replacing `response` property with `body` property
