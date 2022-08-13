@@ -81,9 +81,9 @@ export type HTTPRequest = Required<RequestInterface> & {
 /**
  * Response object interface except clone and setBody functions
  */
-export type ResponseInterface<THeaderType = HeadersType, TBody = unknown> = {
+export type ResponseInterface<THeaderType = HeadersType> = {
   responseType: HTTPResponseType;
-  body: TBody | ResponseBodyType;
+  body: ResponseBodyType;
   ok: boolean;
   status: number;
   statusText: string;
@@ -97,7 +97,7 @@ export type ResponseInterface<THeaderType = HeadersType, TBody = unknown> = {
 export type HTTPResponse<
   THeaderType = HeadersType,
   TBody = unknown
-> = ResponseInterface<THeaderType, TBody> & {
+> = ResponseInterface<THeaderType> & {
   setBody?: SetResponseBodyType<TBody>;
   clone: (
     argument: Partial<Omit<HTTPResponse<THeaderType>, 'clone'>>
