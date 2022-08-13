@@ -1,4 +1,4 @@
-import { HttpBackend, HttpBackendController, HttpRequest } from './types';
+import { HTTPBackend, HTTPBackendController, HTTPRequest } from './types';
 
 // Controller implementation add an event emitter layer on
 // top of the controller object that can be used to register
@@ -88,10 +88,10 @@ function asEventEmitter(object$: Record<string, any>) {
  * @description Backend controller uses composition to add request cancellation implementation
  * on top of the backend api.
  */
-export function useRequestBackendController<T>(backend: HttpBackend) {
-  const controller: HttpBackendController = asEventEmitter(
+export function useRequestBackendController<T>(backend: HTTPBackend) {
+  const controller: HTTPBackendController = asEventEmitter(
     new Object()
-  ) as any as HttpBackendController;
+  ) as any as HTTPBackendController;
 
   // Defines backend property getter and setter
   Object.defineProperty(controller, 'backend', {
@@ -114,7 +114,7 @@ export function useRequestBackendController<T>(backend: HttpBackend) {
 
   // Defines a handle method the redirect to backend handle method
   Object.defineProperty(controller, 'handle', {
-    value: (req: HttpRequest) => controller.backend?.handle(req),
+    value: (req: HTTPRequest) => controller.backend?.handle(req),
   });
 
   // Defines the host method that redirect to the backend host method
@@ -128,7 +128,7 @@ export function useRequestBackendController<T>(backend: HttpBackend) {
 
   // Register the cancel event
   if (typeof controller['addEventListener'] === 'function') {
-    controller['addEventListener']('abort', (req: HttpRequest) => {
+    controller['addEventListener']('abort', (req: HTTPRequest) => {
       if (controller.aborted) {
         throw new Error('Cannot abort a request that was already aborted');
       }

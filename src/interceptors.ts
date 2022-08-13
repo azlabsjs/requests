@@ -1,5 +1,5 @@
 import {
-  HttpRequest,
+  HTTPRequest,
   Interceptor,
   NextFunction,
   RequestOptions,
@@ -36,7 +36,7 @@ function getTotalBytes(body: any) {
   return null;
 }
 
-function getRequestOptions(request: HttpRequest) {
+function getRequestOptions(request: HTTPRequest) {
   //
   let options: RequestOptions & {
     clone?: (properties: RequestOptions) => RequestOptions | any;
@@ -136,8 +136,8 @@ export function usePipeline<T>(...pipeline: Interceptor<T>[]) {
  * @param next
  */
 export function defaultInterceptor(
-  request: HttpRequest,
-  next: NextFunction<HttpRequest>
+  request: HTTPRequest,
+  next: NextFunction<HTTPRequest>
 ) {
   const options = getRequestOptions(request);
   request = request.clone({

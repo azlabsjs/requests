@@ -1,9 +1,9 @@
 import { defaultInterceptor, usePipeline } from './interceptors';
 import {
   Interceptor,
-  HttpRequest,
+  HTTPRequest,
   RequestInterface,
-  HttpResponse,
+  HTTPResponse,
   RequestClient,
   RequestHandler,
 } from './types';
@@ -13,18 +13,20 @@ import { Request } from './helpers';
 import { fetchBackendController } from './fetch';
 import { xhrBackendController } from './xhr';
 
-// @internal
-type HttpRequestHandler = RequestHandler<HttpRequest, HttpResponse>;
+/**
+ * @internal
+ */
+type HttpRequestHandler = RequestHandler<HTTPRequest, HTTPResponse>;
 
 /**
  * @description Creates a client object for making request
  */
 export function useRequestClient(
   backend?: HttpRequestHandler,
-  interceptors: Interceptor<HttpRequest>[] = []
+  interceptors: Interceptor<HTTPRequest>[] = []
 ) {
   const client: Record<string, any> & {
-    interceptors?: Interceptor<HttpRequest>[];
+    interceptors?: Interceptor<HTTPRequest>[];
   } = new Object();
 
   // Defines a non-enumerable interceptors property
@@ -44,7 +46,7 @@ export function useRequestClient(
 
   // RegisterInterceptors set the request interceptors list
   Object.defineProperty(client, 'registerInterceptors', {
-    value: (...interceptors: Interceptor<HttpRequest>[]) => {
+    value: (...interceptors: Interceptor<HTTPRequest>[]) => {
       client.interceptors = (client.interceptors ?? []).concat(...interceptors);
       return client;
     },
@@ -144,7 +146,7 @@ export function useRequestClient(
   client.interceptors = interceptors ?? [];
 
   // Returns the constructed request client
-  return client as RequestClient<HttpRequest, HttpResponse> & {
-    getInterceptors: () => Interceptor<HttpRequest>[];
+  return client as RequestClient<HTTPRequest, HTTPResponse> & {
+    getInterceptors: () => Interceptor<HTTPRequest>[];
   };
 }

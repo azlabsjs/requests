@@ -1,4 +1,4 @@
-import { HttpBackend, HttpRequest, HttpResponseType } from './types';
+import { HTTPBackend, HTTPRequest, HTTPResponseType } from './types';
 import {
   CreateErrorResponse,
   CreateResponse,
@@ -9,7 +9,7 @@ import { useRequestBackendController } from './controller';
 
 type ControllerAwareHttpBackend = {
   controller: AbortController;
-} & HttpBackend;
+} & HTTPBackend;
 
 function createInstance(host?: string) {
   //#region Initialize backend instance properties
@@ -28,7 +28,7 @@ function createInstance(host?: string) {
  * @param responseType
  * @param response
  */
-function getResponseBody(responseType: HttpResponseType, response: Response) {
+function getResponseBody(responseType: HTTPResponseType, response: Response) {
   switch (responseType.toLocaleLowerCase()) {
     case 'json':
       return response.json();
@@ -82,7 +82,7 @@ function asFormData(body: Record<string, FormDataEntryValue> | FormData) {
 // 'application/json;charset=UTF-8'
 function getRequestBody(
   contentType: string,
-  body: Record<string, FormDataEntryValue> | FormData | undefined
+  body: Record<string, FormDataEntryValue> | FormData | undefined|unknown
 ) {
   if (typeof body === 'undefined' || body === null) {
     return body;
@@ -115,7 +115,7 @@ function getRequestBody(
     contentType.indexOf('multipart/form-data') !== -1 &&
     !(body instanceof FormData)
   ) {
-    return asFormData(body);
+    return asFormData(body as FormData);
   }
 
   // If the request content type is not specified && Request is not instance of FormData, Blob, File, or ReadableStream
@@ -131,7 +131,7 @@ function getRequestBody(
 */
 async function sendRequest(
   backend: ControllerAwareHttpBackend,
-  req: HttpRequest
+  req: HTTPRequest
 ) {
   const requestHeaders = parseRequestHeaders(req.options?.headers || {});
   const contentType = getContentType(requestHeaders);
@@ -178,7 +178,7 @@ export function useFetchBackend(host?: string) {
   const backend = createInstance(host) as any as ControllerAwareHttpBackend;
 
   Object.defineProperty(backend, 'handle', {
-    value: (req: HttpRequest) => {
+    value: (req: HTTPRequest) => {
       return new Promise((resolve, reject) => {
         sendRequest(backend, req)
           .then((state) => {
@@ -194,7 +194,7 @@ export function useFetchBackend(host?: string) {
             if (ok) {
               return resolve(
                 CreateResponse({
-                  response: responseBody,
+                  body: responseBody,
                   responseType: responseType,
                   headers,
                   ok,

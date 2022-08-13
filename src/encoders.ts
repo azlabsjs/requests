@@ -111,16 +111,17 @@ export class FormDataRequestEncoder implements Encoder {
   }
 
   // Encode the request body into a raw string
-  async encode(body: Record<string, any> | FormData): Promise<string> {
+  async encode(
+    body: Record<string, any> | FormData | unknown
+  ): Promise<string> {
     const segments: Promise<string[]>[] = [];
     if (body instanceof FormData) {
       body.forEach((value, prop) => {
         segments.push(this.encodeBodyEntry(prop, value));
       });
-    } else {
+    } else if (typeof body === 'object'){
       for (const prop in body) {
-        const value = body[prop];
-        segments.push(this.encodeBodyEntry(prop, value));
+        segments.push(this.encodeBodyEntry(prop, body[prop as keyof typeof body]));
       }
     }
     const content: string[] = [];
@@ -151,7 +152,7 @@ export class RawEncoder implements Encoder {
 
   // Provides encoding implementation
   encode(
-    body: Record<string, FormDataEntry> | FormData
+    body: Record<string, FormDataEntry> | FormData | unknown
   ): string | Promise<string> {
     const _body: Record<string, any> = {};
     if (body instanceof FormData) {
@@ -164,8 +165,9 @@ export class RawEncoder implements Encoder {
       });
     } else if (typeof body === 'object') {
       for (const key in body) {
-        if (typeof body[key] !== 'function') {
-          _body[key] = body[key];
+        const _key = key as keyof typeof body;
+        if (typeof body[_key] !== 'function') {
+          _body[key] = body[_key];
         }
       }
     }

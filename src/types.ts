@@ -1,8 +1,34 @@
 // Form data entry object interface definition
 export type FormDataEntry = File | string | FormDataEntryValue;
 
+// Request headers object interface definition
+export type HeadersType = HeadersInit;
+/**
+ * @internal
+ */
+export type RequestParamType = Record<
+  string,
+  string | string[] | unknown | any
+>;
+/**
+ * @internal
+ */
+export type ResponseBodyType =
+  | ArrayBuffer
+  | string
+  | Blob
+  | Document
+  | ReadableStream;
+
+/**
+ * @internal
+ */
+export type SetResponseBodyType<TBody = unknown, TResult = TBody> =
+  | TBody
+  | ((value: TBody | ResponseBodyType) => TResult | ResponseBodyType);
+
 // HTTP response object interface definition
-export type HttpResponseType =
+export type HTTPResponseType =
   | 'arraybuffer'
   | 'text'
   | 'blob'
@@ -30,45 +56,65 @@ export type RequestBody =
   | FormData
   | Record<string, string | File | FormDataEntryValue>
   | Record<string, any>
-  | any;
+  | unknown;
 
 // Type definition of a request interface object
 // @internal
-export type RequestInterface = {
+export type RequestInterface<
+  TParamType = RequestParamType,
+  THeaderType = HeadersType
+> = {
+  setHeaders?: THeaderType;
+  setResponseType?: string;
+  setParams?: TParamType;
   method: HTTPRequestMethods;
   url: string;
-  options?: RequestOptions;
+  options?: RequestOptions<TParamType, THeaderType>;
   body?: RequestBody;
 };
 
 // Request object interface definition
-export type HttpRequest = Required<RequestInterface> & {
-  clone(properties?: { [prop: string]: any }): any;
+export type HTTPRequest = Required<RequestInterface> & {
+  clone: (argument: Partial<Omit<HTTPRequest, 'clone'>>) => HTTPRequest;
 };
 
-// Response object interface definitions
-// @internal
-export type HttpResponse = {
-  responseType: XMLHttpRequestResponseType;
-  response: ArrayBuffer | string | Blob | Document | ReadableStream;
+/**
+ * Response object interface except clone and setBody functions
+ */
+export type ResponseInterface<THeaderType = HeadersType, TBody = unknown> = {
+  responseType: HTTPResponseType;
+  body: TBody | ResponseBodyType;
   ok: boolean;
   status: number;
   statusText: string;
-  headers: HeadersType;
+  headers: THeaderType;
   url: string | undefined;
 };
 
+/**
+ * HTTP Response object type definitions
+ */
+export type HTTPResponse<
+  THeaderType = HeadersType,
+  TBody = unknown
+> = ResponseInterface<THeaderType, TBody> & {
+  setBody?: SetResponseBodyType<TBody>;
+  clone: (
+    argument: Partial<Omit<HTTPResponse<THeaderType>, 'clone'>>
+  ) => HTTPResponse<THeaderType>;
+};
+
 // Http Error Response type definition
-export type HttpErrorResponse = {
+export type HTTPErrorResponse<THeaderType = HeadersType> = {
   status: number;
   statusText: string;
   error: string | any;
   url?: string;
-  headers?: HeadersType;
+  headers?: THeaderType;
+  clone: (
+    argument: Partial<Omit<HTTPErrorResponse, 'clone'>>
+  ) => HTTPErrorResponse;
 };
-
-// Request headers object interface definition
-export type HeadersType = HeadersInit;
 
 // Pipelines types definitions
 export type NextFunction<T, R = unknown> = (request: T) => R;
@@ -88,19 +134,23 @@ export type RequestProgressEvent = {
 };
 
 // Request options object interface definitions
-export type RequestOptions = {
+export type RequestOptions<
+  TParamType = RequestParamType,
+  THeaderType = HeadersType
+> = {
   // Defines request options used by the request client
-  headers?: HeadersType;
+  headers?: THeaderType;
   timeout?: number;
   withCredentials?: boolean;
-  responseType?: HttpResponseType;
+  responseType?: HTTPResponseType;
+  params?: TParamType;
 
   // Request options methods for interacting with request
   onProgress?: (e: RequestProgressEvent) => void;
   onTimeout?: () => void;
 
   // Interceptors options definitions
-  interceptors?: Interceptor<HttpRequest>[];
+  interceptors?: Interceptor<HTTPRequest>[];
 
   // Fetch specific options
   keepalive?: boolean;
@@ -152,13 +202,13 @@ export type RequestClient<T, R> = {
 };
 
 // Request backend provider interface definition
-export type HttpBackend = RequestHandler<HttpRequest, HttpResponse> & {
+export type HTTPBackend = RequestHandler<HTTPRequest, HTTPResponse> & {
   // Cleanup resources when get call
-  onDestroy?: (request?: HttpRequest) => void;
+  onDestroy?: (request?: HTTPRequest) => void;
 };
 
 // Http Request Controller type definition
-export type HttpBackendController = RequestHandler<HttpRequest, HttpResponse> &
+export type HTTPBackendController = RequestHandler<HTTPRequest, HTTPResponse> &
   Record<string, any> & {
     /**
      * Boolean value indicating whether request was
@@ -171,5 +221,5 @@ export type HttpBackendController = RequestHandler<HttpRequest, HttpResponse> &
      * requests to server
      * @property
      */
-    backend: HttpBackend;
+    backend: HTTPBackend;
   };

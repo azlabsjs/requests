@@ -7,11 +7,11 @@ import {
   parseRequestHeaders,
 } from './helpers';
 import {
-  HttpBackend,
+  HTTPBackend,
   RequestProgressEvent,
-  HttpRequest,
-  HttpResponse,
-  HttpErrorResponse,
+  HTTPRequest,
+  HTTPResponse,
+  HTTPErrorResponse,
 } from './types';
 import { toBinary } from './utils';
 
@@ -93,7 +93,7 @@ function isMultipartRequestBody(body: any) {
 
 // @internal
 // Send the request using the provided client object
-async function sendRequest(instance: XMLHttpRequest, request: HttpRequest) {
+async function sendRequest(instance: XMLHttpRequest, request: HTTPRequest) {
   const requestHeaders = parseRequestHeaders(request.options?.headers || {});
   let contentType = getContentType(requestHeaders);
   for (const header in requestHeaders) {
@@ -181,7 +181,7 @@ function partialXhr(instance: XMLHttpRequest) {
  * Creates an XML Http Request object from the Request object
  * @internal
  */
-function initXMLHttpRequest(xhr: XMLHttpRequest, request: HttpRequest) {
+function initXMLHttpRequest(xhr: XMLHttpRequest, request: HTTPRequest) {
   // TODO: open the request
   xhr.open(request.method, request.url, true);
 
@@ -280,31 +280,31 @@ export function useXhrBackend(url?: string) {
   const backend = createInstance(url) as any as {
     instance: XMLHttpRequest;
     onProgess?: (event: ProgressEvent) => RequestProgressEvent;
-    onLoad: () => Promise<HttpResponse>;
-    onError: (event: ProgressEvent) => HttpErrorResponse;
-  } & HttpBackend;
+    onLoad: () => Promise<HTTPResponse>;
+    onError: (event: ProgressEvent) => HTTPErrorResponse;
+  } & HTTPBackend;
 
   // @internal
-  let errorHandler: (e: ProgressEvent) => Promise<HttpErrorResponse>;
+  let errorHandler: (e: ProgressEvent) => Promise<HTTPErrorResponse>;
   //@internal
-  let finishHandler: () => Promise<HttpResponse>;
+  let finishHandler: () => Promise<HTTPResponse>;
   //@internal
   let progressHandler: (e: ProgressEvent) => void;
 
   Object.defineProperty(backend, 'handle', {
-    value: (message: HttpRequest) => {
+    value: (message: HTTPRequest) => {
       if (typeof backend.instance === 'undefined') {
         throw new Error(
           'Backend is undefined, cause by onDestroy() function call or unknow method call'
         );
       }
-      return new Promise<HttpResponse>((resolve, reject) => {
+      return new Promise<HTTPResponse>((resolve, reject) => {
         errorHandler = (
-          (callback: (event: HttpErrorResponse) => any) => (e: ProgressEvent) =>
+          (callback: (event: HTTPErrorResponse) => any) => (e: ProgressEvent) =>
             callback(backend.onError(e))
         )(reject);
         finishHandler = (
-          (callback: (event: Promise<HttpResponse>) => any) => () =>
+          (callback: (event: Promise<HTTPResponse>) => any) => () =>
             callback(backend.onLoad())
         )(resolve);
         progressHandler = ((_request) => (e: ProgressEvent) => {
@@ -372,8 +372,14 @@ export function useXhrBackend(url?: string) {
       );
       if (ok) {
         return CreateResponse({
-          response: body,
-          responseType: backend.instance.responseType,
+          body: body,
+          responseType:
+            backend.instance.responseType === ''
+              ? 'arraybuffer'
+              : (backend.instance.responseType as Exclude<
+                  XMLHttpRequestResponseType,
+                  ''
+                >),
           headers,
           ok,
           url: url || undefined,
@@ -406,7 +412,7 @@ export function useXhrBackend(url?: string) {
   });
 
   Object.defineProperty(backend, 'abort', {
-    value: (req: HttpRequest) => {
+    value: (req: HTTPRequest) => {
       // On a cancellation, remove all registered event listeners.
       if (errorHandler) {
         backend.instance.removeEventListener('error', errorHandler);
@@ -433,7 +439,7 @@ export function useXhrBackend(url?: string) {
   });
 
   Object.defineProperty(backend, 'onDestroy', {
-    value: (request?: HttpRequest) => {
+    value: (request?: HTTPRequest) => {
       if (typeof backend.abort === 'function') {
         backend.abort(request);
       }

@@ -46,10 +46,15 @@ export class URIHelper {
   // Build uri with search parameter
   public static buildSearchParams(
     url: string,
-    body: Record<string, FormDataEntryValue> | FormData,
+    body: Record<string, FormDataEntryValue> | FormData | unknown,
     contentType = 'text/plain'
   ) {
-    const segments = URIHelper.buildQuery(body, contentType);
+    const segments = URIHelper.buildQuery(
+      typeof body === 'object' && body !== null
+        ? (body as Record<string, FormDataEntryValue>)
+        : {},
+      contentType
+    );
     return url.replace(
       /(?:\?.*)?$/,
       segments.length > 0 ? '?' + segments.join('&') : ''

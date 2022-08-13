@@ -1,10 +1,14 @@
 import { Cloneable } from './clone';
 import {
   HeadersType,
-  HttpErrorResponse,
-  HttpRequest,
-  HttpResponse,
+  HTTPErrorResponse,
+  HTTPRequest,
+  HTTPResponse,
+  HTTPResponseType,
   RequestInterface,
+  RequestParamType,
+  ResponseInterface,
+  SetResponseBodyType,
 } from './types';
 import { validateHeaderName, validateHeaderValue } from './utils';
 
@@ -69,24 +73,88 @@ export function Request(request: RequestInterface, xRequestWith?: string) {
     const prop = header.toLocaleLowerCase();
     requestHeaders[prop] = value;
   }
-  return Cloneable(Object, {
-    ...request,
-    options: { ...requestOptions, headers: requestHeaders },
-  } as RequestInterface) as HttpRequest;
+  return Cloneable<HTTPRequest>(
+    Object as any,
+    {
+      ...request,
+      options: { ...requestOptions, headers: requestHeaders },
+    } as RequestInterface,
+    {
+      setHeaders: (_request, headers: HeadersType) => {
+        return _request.clone({
+          ..._request,
+          options: {
+            ..._request.options,
+            headers,
+          },
+        });
+      },
+      setResponseType: (_request, responseType: HTTPResponseType) => {
+        return _request.clone({
+          ..._request,
+          options: {
+            ..._request.options,
+            responseType,
+          },
+        });
+      },
+      setParams: (_request, params: RequestParamType) => {
+        return _request.clone({
+          ..._request,
+          options: {
+            ..._request.options,
+            params,
+          },
+        });
+      },
+    }
+  );
 }
 
 /**
  * @description Creates a response object containing request response
+ * 
+ * **Note**
+ * Response object provides interface for cloning itself. Use the `clone()`
+ * method for cloning response in interceptor instead of directyl modifying the
+ * response
+ * 
+ * ```js
+    const client = useRequestClient(...);
+  
+    let response = await client.request({...});
+
+    // Modifying the response
+    response = response.clone({
+      setBody: (body: any) => {
+        return {
+          data: body
+        };
+      },
+      status: 201,
+    });
+ * ```
+ * 
  */
-export function CreateResponse(response: HttpResponse) {
-  return Cloneable(Object, { ...response }) as HttpResponse & {
-    clone(properties: Partial<HttpResponse>): HttpResponse;
-  };
+export function CreateResponse(response: ResponseInterface) {
+  return Cloneable<HTTPResponse<HeadersType>>(
+    Object as any,
+    { ...response },
+    {
+      setBody: (_response, value: SetResponseBodyType) => {
+        return _response.clone({
+          body: typeof value === 'function' ? value(_response.body) : value,
+        });
+      },
+    }
+  );
 }
 
 /**
  * @description Creates an http error response instance
  */
-export function CreateErrorResponse(response: HttpErrorResponse) {
-  return Cloneable(Object, { ...response }) as any as HttpErrorResponse;
+export function CreateErrorResponse(
+  response: Omit<HTTPErrorResponse, 'clone'>
+) {
+  return Cloneable<HTTPErrorResponse>(Object as any, { ...response });
 }
