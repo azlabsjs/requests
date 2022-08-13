@@ -1,5 +1,5 @@
 {
-    "version": "0.1.15",
+    "version": "0.1.20",
     "description": "HTTP Request client based on XMLHttpRequest object and fetch implementation in the browser and node-fetch implementation for node js environement",
     "license": "MIT",
     "main": "dist/index.js",
