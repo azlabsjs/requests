@@ -117,7 +117,9 @@ export type HTTPErrorResponse<THeaderType = HeadersType> = {
 };
 
 // Pipelines types definitions
-export type NextFunction<T, R = unknown> = (request: T) => R;
+export type NextFunction<T, R = unknown> = (
+  request: T
+) => R | ((request: T) => Promise<R>);
 
 // Request interceptor type definition
 export type Interceptor<T, R = unknown> = (

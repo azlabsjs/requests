@@ -173,3 +173,18 @@ export function randomName() {
     Math.random().toString(16).substring(2, 15)
   );
 }
+
+/**
+ * @internal
+ * 
+ * Checks if user provided value is a promise instance
+ */
+export function isPromise(value: any) {
+  return (
+    value instanceof Promise ||
+    (typeof value === 'object' &&
+      value !== null &&
+      typeof value.then === 'function' &&
+      typeof value.catch === 'function')
+  );
+}
