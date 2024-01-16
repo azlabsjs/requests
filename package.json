@@ -55,7 +55,7 @@
         "@azlabsjs/ts-build": "^0.1.16",
         "@betterer/cli": "^5.3.6",
         "@betterer/typescript": "^5.3.6",
-        "@size-limit/preset-small-lib": "^7.0.8",
+        "@size-limit/preset-small-lib": "^11.0.1",
         "@types/busboy": "^1.5.0",
         "@types/jest": "^28.1.4",
         "@types/node": "^18.0.1",

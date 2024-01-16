@@ -53,6 +53,15 @@ export function useRequestClient(
     writable: false,
   });
 
+  // Add a with builder implementation to request instance
+  Object.defineProperty(client, 'withInterceptors', {
+    value: (...interceptors: Interceptor<HTTPRequest>[]) => {
+      client.interceptors = (client.interceptors ?? []).concat(...interceptors);
+      return client;
+    },
+    writable: false,
+  });
+
   // Request method to send the actual request to the server
   Object.defineProperty(client, 'request', {
     value: (req?: RequestInterface | string) => {

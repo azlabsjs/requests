@@ -199,8 +199,19 @@ export type RequestHandler<T, R> = {
  * @description Request client generic interface
  */
 export type RequestClient<T, R> = {
+  /**
+   * Send request to the backend server using the provided message object
+   */
   request: (message?: RequestInterface | string) => Promise<R>;
+  /**
+   * @deprepated use withInterceptors builder pattern call instead
+   */
   registerInterceptors: (...interceptors: Interceptor<T>[]) => T;
+
+  /**
+   * Append a list of interceptor to the list of client interceptors
+   */
+  withInterceptors: (...interceptors: Interceptor<T>[]) => T;
 };
 
 // Request backend provider interface definition

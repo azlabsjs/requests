@@ -1,6 +1,6 @@
 import {
   Interceptor,
-  HttpRequest,
+  HTTPRequest,
   useClient,
   fetchBackendController,
 } from '../src';
@@ -14,13 +14,13 @@ describe('Request client instance tests', () => {
     expect(typeof client.request).toBe('function');
   });
 
-  it('should creates an object having the registerInterceptors() method on it', () => {
+  it('should creates an object having the withInterceptors() method on it', () => {
     const client = useClient(fetchBackendController());
-    expect(typeof client.registerInterceptors).toBe('function');
+    expect(typeof client.withInterceptors).toBe('function');
   });
 
-  it('should test if registerInterceptors add interceptors to the request client', () => {
-    const requestInterceptors: Interceptor<HttpRequest>[] = [
+  it('should test if withInterceptors add interceptors to the request client', () => {
+    const requestInterceptors: Interceptor<HTTPRequest>[] = [
       (request, next) => {
         // Do something and return next
         return next(request);
@@ -29,17 +29,17 @@ describe('Request client instance tests', () => {
         //
         request = request.clone({
           ...request.options,
-          responseType: 'blob',
+          setResponseType: 'blob'
         });
         return next(request);
       },
     ];
 
     const client = useClient(fetchBackendController());
-    client.registerInterceptors(...requestInterceptors);
+    client.withInterceptors(...requestInterceptors);
     expect(client.getInterceptors().length).toBe(2);
     expect(
-      (client.getInterceptors() as Interceptor<HttpRequest>[]).includes(
+      (client.getInterceptors() as Interceptor<HTTPRequest>[]).includes(
         requestInterceptors[0]
       )
     ).toBe(true);
