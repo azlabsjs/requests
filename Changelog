@@ -5,3 +5,7 @@
 - Breaking changes in Request.clone(), Response.clone()
 - Breaking changes introduced in HTTPMethod types, HTTPResponse type and HTTP and most types definitions
 - Breaking Change in HTTPResponse, replacing `response` property with `body` property
+
+## [v0.2.0] 2024-05-17
+
+- Upgraded @azlabsjs/ts-build version to 0.4.21
