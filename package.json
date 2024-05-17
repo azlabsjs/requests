@@ -1,5 +1,5 @@
 {
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "HTTP Request client based on XMLHttpRequest object and fetch implementation in the browser and node-fetch implementation for node js environement",
     "license": "MIT",
     "name": "@azlabsjs/requests",
