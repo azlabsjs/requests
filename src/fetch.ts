@@ -22,12 +22,7 @@ function createInstance(host?: string) {
   return backend;
 }
 
-/**
- * Returns the response body based on user's specified response type
- *
- * @param responseType
- * @param response
- */
+/** @description returns the response body based on user's specified response type */
 function getResponseBody(responseType: HTTPResponseType, response: Response) {
   switch (responseType.toLocaleLowerCase()) {
     case 'json':
@@ -48,7 +43,7 @@ function getResponseBody(responseType: HTTPResponseType, response: Response) {
 function asFormData(body: Record<string, FormDataEntryValue> | FormData) {
   if (
     body instanceof FormData ||
-    (body as any as FormData).constructor.prototype === FormData.prototype
+    (body as unknown as FormData).constructor.prototype === FormData.prototype
   ) {
     return body as FormData;
   }
@@ -79,10 +74,9 @@ function asFormData(body: Record<string, FormDataEntryValue> | FormData) {
   return _body;
 }
 
-// 'application/json;charset=UTF-8'
 function getRequestBody(
   contentType: string,
-  body: Record<string, FormDataEntryValue> | FormData | undefined|unknown
+  body: Record<string, FormDataEntryValue> | FormData | undefined | unknown
 ) {
   if (typeof body === 'undefined' || body === null) {
     return body;
@@ -169,13 +163,9 @@ async function sendRequest(
   return { statusText, url, headers, ok, status, responseBody, responseType };
 }
 
-/**
- * Backend adapter that uses Fetch API for sending http requests
- *
- * @param host
- */
+/** @description Backend adapter that uses Fetch API for sending http requests */
 export function useFetchBackend(host?: string) {
-  const backend = createInstance(host) as any as ControllerAwareHttpBackend;
+  const backend = createInstance(host) as unknown as ControllerAwareHttpBackend;
 
   Object.defineProperty(backend, 'handle', {
     value: (req: HTTPRequest) => {

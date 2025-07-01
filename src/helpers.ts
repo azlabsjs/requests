@@ -9,12 +9,13 @@ import {
   RequestParamType,
   ResponseInterface,
   SetResponseBodyType,
+  UnknownType,
 } from './types';
 import { validateHeaderName, validateHeaderValue } from './utils';
 
 // @internal
 export function parseRequestHeaders(headers: HeadersType) {
-  const _headers: Record<string, any> = {};
+  const _headers: Record<string, UnknownType> = {};
   if (Array.isArray(headers)) {
     for (const [prop, value] of headers) {
       _headers[prop] = value;
@@ -25,7 +26,7 @@ export function parseRequestHeaders(headers: HeadersType) {
     });
   } else if (typeof headers === 'object') {
     for (const header in headers) {
-      const value = (headers as any)[header];
+      const value = (headers as UnknownType)[header];
       if (typeof value !== 'function') {
         _headers[header] = value;
       }
@@ -42,7 +43,7 @@ export function getContentType(headers: HeadersType) {
   let contentType!: string;
   for (const header in headers) {
     if (header?.toLocaleLowerCase() === 'content-type') {
-      contentType = (headers as any)[header] as string;
+      contentType = (headers as UnknownType)[header] as string;
       break;
     }
   }
@@ -58,12 +59,12 @@ export function Request(request: RequestInterface, xRequestWith?: string) {
   const requestOptions = request.options || {};
   // Default headers to use when client does not
   // provide a headers options
-  const requestHeaders: Record<string, any> = xRequestWith
+  const requestHeaders: Record<string, UnknownType> = xRequestWith
     ? {
         'x-requested-with': xRequestWith,
       }
     : {};
-  const headers: Record<string, any> = requestOptions.headers ?? {};
+  const headers: Record<string, UnknownType> = requestOptions.headers ?? {};
 
   // We Transform all header property to lowercase
   for (const header in headers) {
@@ -74,7 +75,7 @@ export function Request(request: RequestInterface, xRequestWith?: string) {
     requestHeaders[prop] = value;
   }
   return Cloneable<HTTPRequest>(
-    Object as any,
+    Object as UnknownType,
     {
       ...request,
       options: { ...requestOptions, headers: requestHeaders },
@@ -138,7 +139,7 @@ export function Request(request: RequestInterface, xRequestWith?: string) {
  */
 export function CreateResponse(response: ResponseInterface) {
   return Cloneable<HTTPResponse<HeadersType>>(
-    Object as any,
+    Object as UnknownType,
     { ...response },
     {
       setBody: (_response, value: SetResponseBodyType) => {
@@ -156,5 +157,5 @@ export function CreateResponse(response: ResponseInterface) {
 export function CreateErrorResponse(
   response: Omit<HTTPErrorResponse, 'clone'>
 ) {
-  return Cloneable<HTTPErrorResponse>(Object as any, { ...response });
+  return Cloneable<HTTPErrorResponse>(Object as UnknownType, { ...response });
 }

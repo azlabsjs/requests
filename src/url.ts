@@ -7,7 +7,7 @@ function entryValue(value: FormDataEntryValue) {
 }
 //#region Provide uri specific utilities
 export class URIHelper {
-  //
+
   // Provide the actual implementation of encoding
   public static encodeText(
     name: string,

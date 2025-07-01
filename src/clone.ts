@@ -1,3 +1,5 @@
+import { UnknownType } from "./types";
+
 type CloneFunction<T> = (argument: Partial<Omit<T, 'clone'>>) => T;
 type CloneableType<T> = T & {
   clone: (argument: Partial<Omit<T, 'clone'>>) => T;
@@ -9,11 +11,11 @@ type CloneableType<T> = T & {
 // @internal
 export function Cloneable<T>(
   bluePrint: new () => T,
-  args: any,
+  args: UnknownType,
   cloneMap?: Partial<{
     [p in keyof Partial<Omit<T, 'clone'>>]: (
       _object: T,
-      value: any
+      value: UnknownType
     ) => CloneableType<T>;
   }>
 ) {
@@ -53,13 +55,13 @@ export function Cloneable<T>(
     let object$ = Cloneable<T>(instance.constructor, { ...instance });
     for (const prop in properties) {
       const _prop = prop as keyof typeof object$;
-      const value = (properties as any)[_prop] as any;
+      const value = (properties as UnknownType)[_prop] as UnknownType;
       const valueType = typeof value;
       if (valueType === 'undefined' || value === null) {
         continue;
       }
       if (prop in _cloneMap) {
-        object$ = (_cloneMap as any)[prop](object$, value);
+        object$ = (_cloneMap as UnknownType)[prop](object$, value);
         continue;
       }
       const isPureObject =

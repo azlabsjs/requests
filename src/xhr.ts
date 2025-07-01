@@ -12,12 +12,13 @@ import {
   HTTPRequest,
   HTTPResponse,
   HTTPErrorResponse,
+  UnknownType,
 } from './types';
 import { toBinary } from './utils';
 
-// Get all request headers as dictionary data structure
+// get all request headers as dictionary data structure
 function getResponseHeaders(headers: string) {
-  const result: Record<string, any> = new Object();
+  const result: Record<string, UnknownType> = new Object();
   for (const header of headers.split('\r\n')) {
     const [name, value] = header.split(': ');
     if (
@@ -36,7 +37,7 @@ function getResponseHeaders(headers: string) {
  * Determine an appropriate URL for the response, by checking either
  * XMLHttpRequest.responseURL or the X-Request-URL header.
  */
-function getResponseUrl(xhr: any) {
+function getResponseUrl(xhr: UnknownType) {
   if ('responseURL' in xhr && xhr.responseURL) {
     return xhr.responseURL;
   }
@@ -47,7 +48,7 @@ function getResponseUrl(xhr: any) {
 }
 // Reads & parse the Http response body
 // @internal
-function getResponseBody(responseType: string, body: any, ok: boolean) {
+function getResponseBody(responseType: string, body: UnknownType, ok: boolean) {
   if (responseType === 'json' && typeof body === 'string') {
     // Save the original body, before attempting XSSI prefix stripping.
     const originalBody = body;
@@ -77,7 +78,7 @@ function getResponseBody(responseType: string, body: any, ok: boolean) {
 // @internal
 // The function allow client to send object as multipart-request
 // if any of the entry of the object is an instance of Blob or File
-function isMultipartRequestBody(body: any) {
+function isMultipartRequestBody(body: UnknownType) {
   if (body instanceof FormData) {
     return true;
   }
@@ -147,7 +148,7 @@ async function sendRequest(instance: XMLHttpRequest, request: HTTPRequest) {
   // Makes sure to detect a multipart form data request body if the body is
   // a Javascript object with any given value being an instance of Blob or File
   contentType =
-    contentType ?? isMultipartRequestBody(body)
+    (contentType ?? isMultipartRequestBody(body))
       ? 'multipart/form-data'
       : 'application/x-www-form-urlencoded';
 
@@ -247,7 +248,7 @@ function createInstance(host?: string) {
   });
 
   // Returns the constructed backed object
-  return backend as Record<string, any> & {
+  return backend as Record<string, UnknownType> & {
     instance: XMLHttpRequest;
   };
 }
@@ -277,7 +278,7 @@ function createInstance(host?: string) {
  *
  */
 export function useXhrBackend(url?: string) {
-  const backend = createInstance(url) as any as {
+  const backend = createInstance(url) as unknown as {
     instance: XMLHttpRequest;
     onProgess?: (event: ProgressEvent) => RequestProgressEvent;
     onLoad: () => Promise<HTTPResponse>;
@@ -300,11 +301,12 @@ export function useXhrBackend(url?: string) {
       }
       return new Promise<HTTPResponse>((resolve, reject) => {
         errorHandler = (
-          (callback: (event: HTTPErrorResponse) => any) => (e: ProgressEvent) =>
+          (callback: (event: HTTPErrorResponse) => UnknownType) =>
+          (e: ProgressEvent) =>
             callback(backend.onError(e))
         )(reject);
         finishHandler = (
-          (callback: (event: Promise<HTTPResponse>) => any) => () =>
+          (callback: (event: Promise<HTTPResponse>) => UnknownType) => () =>
             callback(backend.onLoad())
         )(resolve);
         progressHandler = ((_request) => (e: ProgressEvent) => {
@@ -443,7 +445,7 @@ export function useXhrBackend(url?: string) {
       if (typeof backend.abort === 'function') {
         backend.abort(request);
       }
-      backend.instance = undefined as any;
+      backend.instance = undefined as unknown as typeof backend.instance;
     },
   });
   return backend;

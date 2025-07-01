@@ -1,14 +1,17 @@
 // Form data entry object interface definition
 export type FormDataEntry = File | string | FormDataEntryValue;
 
-// Request headers object interface definition
+/** @internal */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnknownType = any;
+
+// request headers object interface definition
 export type HeadersType = HeadersInit;
-/**
- * @internal
- */
+
+/** @internal */
 export type RequestParamType = Record<
   string,
-  string | string[] | unknown | any
+  string | string[] | unknown | UnknownType
 >;
 /**
  * @internal
@@ -55,14 +58,14 @@ export type HTTPRequestMethods =
 export type RequestBody =
   | FormData
   | Record<string, string | File | FormDataEntryValue>
-  | Record<string, any>
+  | Record<string, UnknownType>
   | unknown;
 
 // Type definition of a request interface object
 // @internal
 export type RequestInterface<
   TParamType = RequestParamType,
-  THeaderType = HeadersType
+  THeaderType = HeadersType,
 > = {
   setHeaders?: THeaderType;
   setResponseType?: string;
@@ -96,7 +99,7 @@ export type ResponseInterface<THeaderType = HeadersType> = {
  */
 export type HTTPResponse<
   THeaderType = HeadersType,
-  TBody = unknown
+  TBody = unknown,
 > = ResponseInterface<THeaderType> & {
   setBody?: SetResponseBodyType<TBody>;
   clone: (
@@ -108,7 +111,7 @@ export type HTTPResponse<
 export type HTTPErrorResponse<THeaderType = HeadersType> = {
   status: number;
   statusText: string;
-  error: string | any;
+  error: string | UnknownType;
   url?: string;
   headers?: THeaderType;
   clone: (
@@ -125,7 +128,7 @@ export type NextFunction<T, R = unknown> = (
 export type Interceptor<T, R = unknown> = (
   message: T,
   next: NextFunction<T, R>
-) => any;
+) => UnknownType;
 
 // Progress object type
 export type RequestProgressEvent = {
@@ -138,7 +141,7 @@ export type RequestProgressEvent = {
 // Request options object interface definitions
 export type RequestOptions<
   TParamType = RequestParamType,
-  THeaderType = HeadersType
+  THeaderType = HeadersType,
 > = {
   // Defines request options used by the request client
   headers?: THeaderType;
@@ -222,7 +225,7 @@ export type HTTPBackend = RequestHandler<HTTPRequest, HTTPResponse> & {
 
 // Http Request Controller type definition
 export type HTTPBackendController = RequestHandler<HTTPRequest, HTTPResponse> &
-  Record<string, any> & {
+  Record<string, UnknownType> & {
     /**
      * Boolean value indicating whether request was
      * was aborted of not.

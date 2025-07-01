@@ -4,7 +4,28 @@ import {
   useClient,
   fetchBackendController,
 } from '../src';
-import { registerFetchGlobals } from './fetch';
+
+/** @internal */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnknownType = any;
+
+// @internal
+// Provides fetch module along with required Headers, Request, Response
+// Blob, Data, File, AbortController object globally
+export function registerFetchGlobals() {
+  const myGlobalThis =
+    typeof globalThis !== 'undefined' && globalThis !== null
+      ? globalThis
+      : !(typeof window === 'undefined' || window === null)
+        ? window
+        : ({} as UnknownType);
+
+  //
+  if (!myGlobalThis.fetch) {
+    myGlobalThis.fetch = new Object();
+  }
+}
+
 
 registerFetchGlobals();
 

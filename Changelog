@@ -9,3 +9,8 @@
 ## [v0.2.0] 2024-05-17
 
 - Upgraded @azlabsjs/ts-build version to 0.4.21
+
+## [v0.3.x] 2025-07-01
+
+- Removed dependencies to `@azlabsjs/node-fetch-polyfill` dependencies as v18+ natively include `fetch` API
+- Upgraded @azlabsjs/ts-build version to 0.5.x

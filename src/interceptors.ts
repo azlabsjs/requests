@@ -3,6 +3,7 @@ import {
   Interceptor,
   NextFunction,
   RequestOptions,
+  UnknownType,
 } from './types';
 import { isPromise } from './utils';
 
@@ -14,14 +15,14 @@ export const DEFAULT_REFERRER_POLICY = 'strict-origin-when-cross-origin';
  *
  * @param body
  */
-function getTotalBytes(body: any) {
+function getTotalBytes(body: UnknownType) {
   // Body is null or undefined
   if (body === null) {
     return 0;
   }
   // Body is Blob
   if (body instanceof Blob || body instanceof File || body) {
-    return body.size;
+    return (body as Blob).size;
   }
   // Body is Buffer
   if (Buffer.isBuffer(body)) {
@@ -40,10 +41,11 @@ function getTotalBytes(body: any) {
 function getRequestOptions(request: HTTPRequest) {
   //
   let options: RequestOptions & {
-    clone?: (properties: RequestOptions) => RequestOptions | any;
+    clone?: (properties: RequestOptions) => RequestOptions | UnknownType;
   } = request.options ?? ({} as RequestOptions);
 
-  let requestHeaders: Record<string, any> = request.options.headers ?? {};
+  let requestHeaders: Record<string, UnknownType> =
+    request.options.headers ?? {};
 
   // Fetch step 1.3
   if (
@@ -111,25 +113,35 @@ function getRequestOptions(request: HTTPRequest) {
  */
 export function usePipeline<T>(...pipeline: Interceptor<T>[]) {
   return (message: T, next: NextFunction<T>) => {
-      const nextFunc = async (_message: T, interceptor: Interceptor<T>) => {
-          return interceptor(await (isPromise(_message) ? _message : Promise.resolve(_message)), ((request: T) => request) as any);
-      };
-      const stack = [(request: T) => next(request)];
-      if (pipeline.length === 0) {
-          pipeline = [async(request: T, callback: NextFunction<T>) => {
-              return callback(await (isPromise(request) ? request : Promise.resolve(request)));
-          }];
+    const nextFunc = async (_message: T, interceptor: Interceptor<T>) => {
+      return interceptor(
+        await (isPromise(_message) ? _message : Promise.resolve(_message)),
+        ((request: T) => request) as UnknownType
+      );
+    };
+    const stack = [(request: T) => next(request)];
+    if (pipeline.length === 0) {
+      pipeline = [
+        async (request: T, callback: NextFunction<T>) => {
+          return callback(
+            await (isPromise(request) ? request : Promise.resolve(request))
+          );
+        },
+      ];
+    }
+    for (const func of pipeline.reverse()) {
+      const previous = stack.pop();
+      if (typeof previous !== 'function') {
+        throw new Error('Interceptor function must be a callable instance');
       }
-      for (const func of pipeline.reverse()) {
-          const previous = stack.pop();
-          if (typeof previous !== 'function') {
-              throw new Error('Interceptor function must be a callable instance');
-          }
-          stack.push(async (request: T) => {
-              return func(await (isPromise(request) ? request : Promise.resolve(request)), previous);
-          });
-      }
-      return nextFunc(message, stack.pop() as Interceptor<T>);
+      stack.push(async (request: T) => {
+        return func(
+          await (isPromise(request) ? request : Promise.resolve(request)),
+          previous
+        );
+      });
+    }
+    return nextFunc(message, stack.pop() as Interceptor<T>);
   };
 }
 

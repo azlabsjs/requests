@@ -1,4 +1,4 @@
-import { FormDataEntry } from './types';
+import { FormDataEntry, UnknownType } from './types';
 import { URIHelper } from './url';
 import { isPrimitive, randomName } from './utils';
 
@@ -57,26 +57,34 @@ export class FormDataRequestEncoder implements Encoder {
     );
   }
 
-  private encodeArray(name: string, value: any[]): string[] {
+  private encodeArray(name: string, value: unknown[]): string[] {
     const segments: string[] = [];
     name = `${name}[]`;
     for (const current of value) {
       if (isPrimitive(current)) {
-        segments.push(this.encodeText(name, current));
+        segments.push(this.encodeText(name, String(current)));
       } else if (Array.isArray(current)) {
         segments.push(...this.encodeArray(name, current));
       } else if (typeof current === 'object') {
-        segments.push(...this.encodeRawObject(name, current));
+        segments.push(
+          ...this.encodeRawObject(
+            name,
+            current as Record<string | symbol, UnknownType>
+          )
+        );
       }
     }
     return segments;
   }
 
-  private encodeRawObject(name: string, value: Record<string, any>): string[] {
+  private encodeRawObject(
+    name: string,
+    value: Record<string, UnknownType>
+  ): string[] {
     const segments: string[] = [];
     for (const prop in value) {
       if (isPrimitive(value[prop])) {
-        segments.push(this.encodeText(`${name}[${prop}]`, value[prop]));
+        segments.push(this.encodeText(`${name}[${prop}]`, String(value[prop])));
       } else if (Array.isArray(value[prop])) {
         segments.push(...this.encodeArray(`${name}[${prop}]`, value[prop]));
       } else if (typeof value[prop] === 'object') {
@@ -86,12 +94,12 @@ export class FormDataRequestEncoder implements Encoder {
     return segments;
   }
 
-  private async encodeBodyEntry(prop: string, value: any) {
+  private async encodeBodyEntry(prop: string, value: UnknownType) {
     if (isPrimitive(value)) {
       return new Promise<string[]>((resolve) => {
         resolve([this.encodeText(prop, value as string)]);
       });
-    } else if (value instanceof File || (value as any) instanceof Blob) {
+    } else if (value instanceof File || value instanceof Blob) {
       const result = await this.encodeBlob(
         prop,
         value instanceof File ? value.name : randomName(),
@@ -112,16 +120,18 @@ export class FormDataRequestEncoder implements Encoder {
 
   // Encode the request body into a raw string
   async encode(
-    body: Record<string, any> | FormData | unknown
+    body: Record<string, UnknownType> | FormData | unknown
   ): Promise<string> {
     const segments: Promise<string[]>[] = [];
     if (body instanceof FormData) {
       body.forEach((value, prop) => {
         segments.push(this.encodeBodyEntry(prop, value));
       });
-    } else if (typeof body === 'object'){
+    } else if (typeof body === 'object') {
       for (const prop in body) {
-        segments.push(this.encodeBodyEntry(prop, body[prop as keyof typeof body]));
+        segments.push(
+          this.encodeBodyEntry(prop, body[prop as keyof typeof body])
+        );
       }
     }
     const content: string[] = [];
@@ -154,7 +164,7 @@ export class RawEncoder implements Encoder {
   encode(
     body: Record<string, FormDataEntry> | FormData | unknown
   ): string | Promise<string> {
-    const _body: Record<string, any> = {};
+    const _body: Record<string, UnknownType> = {};
     if (body instanceof FormData) {
       body.forEach((value, key) => {
         if (value instanceof File) {

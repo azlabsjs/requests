@@ -1,5 +1,8 @@
+import { UnknownType } from './types';
+
 /**
  * @description Convert a raw string or form data encoded string to it binary representation
+ * 
  * **Note**
  * Use it to create a raw binary request body
  */
@@ -22,6 +25,7 @@ export function arrayIndexOf<T>(list: Array<T>, value: T, fromIndex = 0) {
   if (typeof list.indexOf === 'function') {
     return list.indexOf(value);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   ('use strict');
   if (list === null || typeof list === 'undefined') {
     throw TypeError('Array.prototype.indexOf called on null or undefined');
@@ -61,6 +65,7 @@ export function isValidHttpUrl(uri: string) {
   try {
     const url = new URL(uri);
     return url.protocol === 'http:' || url.protocol === 'https:';
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_) {
     return false;
   }
@@ -149,7 +154,9 @@ export function validateHeaderName(name: string) {
  * @description Checks if a variable is of primitive type aka string|number|boolean
  * @param param [[any]]
  */
-export const isPrimitive = (param: unknown) => {
+export function isPrimitive(
+  param: unknown
+): param is string | number | boolean {
   switch (typeof param) {
     case 'string':
     case 'number':
@@ -164,7 +171,7 @@ export const isPrimitive = (param: unknown) => {
     param instanceof Boolean ||
     param === Boolean
   );
-};
+}
 
 // @internal
 export function randomName() {
@@ -176,15 +183,15 @@ export function randomName() {
 
 /**
  * @internal
- * 
+ *
  * Checks if user provided value is a promise instance
  */
-export function isPromise(value: any) {
+export function isPromise(value: unknown) {
   return (
     value instanceof Promise ||
     (typeof value === 'object' &&
       value !== null &&
-      typeof value.then === 'function' &&
-      typeof value.catch === 'function')
+      typeof (value as UnknownType).then === 'function' &&
+      typeof (value as UnknownType).catch === 'function')
   );
 }

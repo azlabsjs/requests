@@ -6,6 +6,7 @@ import {
   HTTPResponse,
   RequestClient,
   RequestHandler,
+  UnknownType,
 } from './types';
 import { URIHelper } from './url';
 import { arrayIncludes, isValidHttpUrl, getHttpHost } from './utils';
@@ -25,7 +26,7 @@ export function useRequestClient(
   backend?: HttpRequestHandler,
   interceptors: Interceptor<HTTPRequest>[] = []
 ) {
-  const client: Record<string, any> & {
+  const client: Record<string, UnknownType> & {
     interceptors?: Interceptor<HTTPRequest>[];
   } = new Object();
 
